@@ -1,0 +1,353 @@
+openapi: 3.0.0
+info:
+  title: Cantio API
+  description: AI-generated music creation API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /api/creators/:
+    get:
+      summary: List all music creators
+      tags: [Creators]
+      responses:
+        '200':
+          description: List of creators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creators:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MusicCreator'
+    post:
+      summary: Create a new music creator
+      tags: [Creators]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+                - email
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                profile_picture:
+                  type: string
+      responses:
+        '201':
+          description: Creator created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  creator:
+                    $ref: '#/components/schemas/MusicCreator'
+
+  /api/creators/{creator_id}/:
+    get:
+      summary: Get a specific creator
+      tags: [Creators]
+      parameters:
+        - name: creator_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Creator found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  creator:
+                    $ref: '#/components/schemas/MusicCreator'
+        '404':
+          description: Creator not found
+    put:
+      summary: Update a creator
+      tags: [Creators]
+      parameters:
+        - name: creator_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                profile_picture:
+                  type: string
+      responses:
+        '200':
+          description: Creator updated
+    delete:
+      summary: Delete a creator
+      tags: [Creators]
+      parameters:
+        - name: creator_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Creator deleted
+
+  /api/creators/{creator_id}/songs/:
+    get:
+      summary: List songs for a creator
+      tags: [Songs]
+      parameters:
+        - name: creator_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of songs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  songs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Song'
+    post:
+      summary: Create a new song
+      tags: [Songs]
+      parameters:
+        - name: creator_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - prompt_description
+              properties:
+                title:
+                  type: string
+                prompt_description:
+                  type: string
+                genre:
+                  type: string
+                mood:
+                  type: string
+                voice_type:
+                  type: string
+                occasion:
+                  type: string
+      responses:
+        '201':
+          description: Song created
+
+  /api/creators/{creator_id}/favourites/:
+    get:
+      summary: List favourite songs for a creator
+      tags: [Songs]
+      parameters:
+        - name: creator_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of favourite songs
+
+  /api/songs/{song_id}/:
+    get:
+      summary: Get a specific song
+      tags: [Songs]
+      parameters:
+        - name: song_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Song found
+    put:
+      summary: Update a song
+      tags: [Songs]
+      parameters:
+        - name: song_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                genre:
+                  type: string
+                mood:
+                  type: string
+                voice_type:
+                  type: string
+                occasion:
+                  type: string
+                duration:
+                  type: integer
+      responses:
+        '200':
+          description: Song updated
+    delete:
+      summary: Delete a song
+      tags: [Songs]
+      parameters:
+        - name: song_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Song deleted
+
+  /api/songs/{song_id}/favourite/:
+    post:
+      summary: Toggle favourite status
+      tags: [Songs]
+      parameters:
+        - name: song_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Favourite toggled
+
+  /api/songs/{song_id}/share/:
+    post:
+      summary: Share a song
+      tags: [Songs]
+      parameters:
+        - name: song_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Song shared
+    delete:
+      summary: Revoke share
+      tags: [Songs]
+      parameters:
+        - name: song_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Share revoked
+
+components:
+  schemas:
+    MusicCreator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        profile_picture:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    Song:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        prompt_description:
+          type: string
+        genre:
+          type: string
+        mood:
+          type: string
+        voice_type:
+          type: string
+        occasion:
+          type: string
+        duration:
+          type: integer
+        is_favourited:
+          type: boolean
+        is_private:
+          type: boolean
+        shareable_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
