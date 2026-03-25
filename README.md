@@ -150,8 +150,6 @@ docker-compose down -v
 | `DJANGO_SUPERUSER_PASSWORD` | `admin` | Auto-created superuser password |
 | `DJANGO_SUPERUSER_EMAIL` | `admin@example.com` | Auto-created superuser email |
 
-> **Security Note**: Never commit `.env` files. The `.gitignore` protects them. For production, use secrets management (e.g., Docker secrets, environment variables from your hosting provider).
-
 ## API Documentation
 
 Swagger UI is available at `http://localhost:8000/api/docs/`
