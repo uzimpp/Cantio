@@ -263,38 +263,7 @@ python manage.py test music.tests --verbosity=2
 Expected output (all tests passing):
 
 ```
-test_abstract_methods_are_declared (music.tests.TestSongGeneratorStrategyInterface) ... ok
-test_cannot_instantiate_abstract_class (music.tests.TestSongGeneratorStrategyInterface) ... ok
-test_concrete_class_without_all_methods_raises (music.tests.TestSongGeneratorStrategyInterface) ... ok
-test_generate_no_audio_url_initially (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_generate_returns_pending_status (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_generate_includes_bearer_token (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_generate_posts_to_suno_endpoint (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_generate_extracts_task_id (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_missing_api_key_raises_on_init (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_poll_echoes_provider_job_id (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_poll_maps_FIRST_SUCCESS_to_processing (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_poll_maps_PENDING_to_pending (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_poll_maps_SUCCESS_to_complete (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_poll_sends_task_id_as_query_param (music.tests.TestSunoSongGeneratorStrategy) ... ok
-test_generate_requires_no_external_calls (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_generate_returns_complete_immediately (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_generate_returns_fixed_audio_url (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_generate_returns_fixed_duration (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_generate_returns_no_error (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_generate_returns_unique_job_ids (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_generate_result_has_valid_uuid_job_id (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_is_instance_of_base (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_poll_always_returns_complete (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_poll_echoes_provider_job_id (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_poll_returns_fixed_audio_url (music.tests.TestMockSongGeneratorStrategy) ... ok
-test_returns_mock_by_default (music.tests.TestGetGeneratorFactory) ... ok
-test_returns_mock_for_uppercase_mock (music.tests.TestGetGeneratorFactory) ... ok
-test_returns_mock_when_explicitly_set (music.tests.TestGetGeneratorFactory) ... ok
-test_returns_suno_for_uppercase_suno (music.tests.TestGetGeneratorFactory) ... ok
-test_returns_suno_when_set_to_suno (music.tests.TestGetGeneratorFactory) ... ok
-test_returned_strategy_implements_interface (music.tests.TestGetGeneratorFactory) ... ok
-test_unknown_value_falls_back_to_mock (music.tests.TestGetGeneratorFactory) ... ok
+...
 
 ----------------------------------------------------------------------
 Ran 32 tests in 0.048s

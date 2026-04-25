@@ -4,44 +4,31 @@ import {
   createContext,
   useContext,
   useEffect,
-  useState,
   ReactNode,
 } from "react";
 
-type Theme = "light" | "dark";
-
 type ThemeContextValue = {
-  theme: Theme;
+  theme: "dark";
   toggle: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "light",
+  theme: "dark",
   toggle: () => {},
 });
 
+/**
+ * Cantio strictly uses a Cinematic Dark Theme.
+ * FR-06, FR-07: Modified to force dark mode exclusively.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  // Read from localStorage and apply class on mount (FR-07)
   useEffect(() => {
-    const saved = (localStorage.getItem("cantio_theme") as Theme) ?? "light";
-    setTheme(saved);
-    document.documentElement.classList.toggle("dark", saved === "dark");
+    // Force dark class on document root for Tailwind semantic tokens
+    document.documentElement.classList.add("dark");
   }, []);
 
-  // FR-06: toggle dark mode and persist choice
-  const toggle = () => {
-    setTheme((prev) => {
-      const next: Theme = prev === "light" ? "dark" : "light";
-      localStorage.setItem("cantio_theme", next);
-      document.documentElement.classList.toggle("dark", next === "dark");
-      return next;
-    });
-  };
-
   return (
-    <ThemeContext.Provider value={{ theme, toggle }}>
+    <ThemeContext.Provider value={{ theme: "dark", toggle: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );

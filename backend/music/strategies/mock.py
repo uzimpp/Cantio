@@ -3,7 +3,7 @@ import uuid
 from .base import GenerationResult, SongGeneratorStrategy
 
 MOCK_AUDIO_URL = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-MOCK_DURATION = 180.0
+MOCK_DURATION = 372 
 
 
 class MockSongGeneratorStrategy(SongGeneratorStrategy):

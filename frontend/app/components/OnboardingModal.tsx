@@ -1,14 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Card } from "./ui/Card";
+import { Button } from "./ui/Button";
+import { MagicWand, PlayCircle, ShareNetwork, Star, MusicNote, X } from "@phosphor-icons/react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const FEATURES = [
+  {
+    icon: <MagicWand size={20} weight="duotone" />,
+    title: "AI Composition",
+    text: "Generate original tracks from plain text prompts.",
+  },
+  {
+    icon: <PlayCircle size={20} weight="duotone" />,
+    title: "Instant Playback",
+    text: "Listen to your creations directly in the browser.",
+  },
+  {
+    icon: <ShareNetwork size={20} weight="duotone" />,
+    title: "Global Sharing",
+    text: "Share your sound with unique public links.",
+  },
+  {
+    icon: <Star size={20} weight="duotone" />,
+    title: "Curated Library",
+    text: "Favourite tracks for quick future access.",
+  },
+];
 
 export function OnboardingModal() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem("cantio_onboarded")) {
-      setVisible(true);
-    }
+    if (!localStorage.getItem("cantio_onboarded")) setVisible(true);
   }, []);
 
   const dismiss = () => {
@@ -16,51 +41,73 @@ export function OnboardingModal() {
     setVisible(false);
   };
 
-  if (!visible) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl p-8 flex flex-col gap-6">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="h-16 w-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-3xl">
-            🎵
-          </div>
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
-            Welcome to Cantio
-          </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Generate original songs with AI. Set a title, describe what you
-            want, pick a genre and mood — then hit Generate. Your tracks live in
-            your Library, ready to play, share, or favourite any time.
-          </p>
+    <AnimatePresence>
+      {visible && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/40 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="w-full max-w-[500px]"
+          >
+            <Card className="p-0 overflow-hidden shadow-2xl relative">
+              <button 
+                onClick={dismiss}
+                className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors z-10"
+              >
+                <X size={20} weight="bold" />
+              </button>
+
+              <div className="p-10 flex flex-col gap-8">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-xl shadow-indigo-500/20 shrink-0">
+                    <MusicNote size={28} weight="bold" color="white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                      Welcome to Cantio
+                    </h2>
+                    <p className="text-sm text-zinc-500 font-medium">Your personal AI orchestrator.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  {FEATURES.map((f, i) => (
+                    <motion.div 
+                      key={f.title}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 + i * 0.1 }}
+                      className="flex items-start gap-4"
+                    >
+                      <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                        {f.icon}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">{f.title}</h3>
+                        <p className="text-xs text-zinc-500 leading-relaxed mt-0.5">{f.text}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <Button 
+                  onClick={dismiss}
+                  size="lg" 
+                  className="w-full h-14 text-base font-bold shadow-indigo-500/20"
+                >
+                  Start Composing
+                </Button>
+              </div>
+              
+              {/* Noise layer */}
+              <div className="absolute inset-0 z-[-1] opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            </Card>
+          </motion.div>
         </div>
-
-        <ul className="flex flex-col gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-          <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-indigo-500">✦</span>
-            <span>Generate songs from natural language prompts</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-indigo-500">✦</span>
-            <span>Play tracks directly in the browser</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-indigo-500">✦</span>
-            <span>Share songs via a unique link</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-indigo-500">✦</span>
-            <span>Star your favourites to find them quickly</span>
-          </li>
-        </ul>
-
-        <button
-          onClick={dismiss}
-          className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white py-3 font-semibold text-sm transition-colors"
-        >
-          Get started
-        </button>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

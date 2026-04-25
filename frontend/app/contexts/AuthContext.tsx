@@ -37,8 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     apiFetch<{ creator: Creator }>("/api/auth/me/")
       .then((d) => setCreator(d.creator))
-      .catch((err: ApiError) => {
-        if (err.status !== 401) console.error("Auth check failed:", err);
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.status !== 401) console.error("Auth check failed:", err);
         setCreator(null);
       })
       .finally(() => setLoading(false));

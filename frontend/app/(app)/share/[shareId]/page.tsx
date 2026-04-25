@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { apiFetch } from "@/app/lib/api";
 import { useAudioPlayer } from "@/app/contexts/AudioPlayerContext";
-import type { Song } from "../../dashboard/page";
+import type { Song } from "../../library/page";
 
 export default function SharedSongPage() {
   const { shareId } = useParams<{ shareId: string }>();

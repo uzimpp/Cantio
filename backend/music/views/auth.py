@@ -62,7 +62,7 @@ class AuthView(View):
 
         request.session["creator_id"] = str(creator.id)
         request.session.set_expiry(settings.SESSION_COOKIE_AGE)
-        return redirect(f"{settings.FRONTEND_URL}/dashboard")
+        return redirect(f"{settings.FRONTEND_URL}/")
 
     def _me(self, request):
         creator_id = request.session.get("creator_id")

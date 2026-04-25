@@ -1,6 +1,10 @@
 "use client";
 
 import { useAudioPlayer } from "@/app/contexts/AudioPlayerContext";
+import { useState } from "react";
+import { Play, Pause, SpeakerHigh, SpeakerX, SkipForward, SkipBack } from "@phosphor-icons/react";
+import { cn } from "@/app/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 function formatTime(seconds: number): string {
   if (!isFinite(seconds) || isNaN(seconds)) return "0:00";
@@ -12,69 +16,113 @@ function formatTime(seconds: number): string {
 export function AudioPlayerBar() {
   const { current, isPlaying, duration, currentTime, pause, resume, seek } =
     useAudioPlayer();
+  const [isDragging, setIsDragging] = useState(false);
+  const [localTime, setLocalTime] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   if (!current) return null;
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const displayTime = isDragging ? localTime : currentTime;
+  const progress = duration > 0 ? (displayTime / duration) * 100 : 0;
+
+  const handleSeekInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.currentTarget.value);
+    setLocalTime(val);
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleSeekChange = () => {
+    seek(localTime);
+    setIsDragging(false);
+  };
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-50 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-lg">
-      {/* Seek bar — full width at very top */}
-      <div className="relative h-1 bg-zinc-200 dark:bg-zinc-700">
-        <div
-          className="h-full bg-indigo-500 transition-none"
-          style={{ width: `${progress}%` }}
-        />
-        <input
-          type="range"
-          min={0}
-          max={duration || 0}
-          step={0.1}
-          value={currentTime}
-          onChange={(e) => seek(parseFloat(e.target.value))}
-          className="absolute inset-0 w-full opacity-0 cursor-pointer h-full"
-          aria-label="Seek"
-        />
-      </div>
+    <motion.div 
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      className="fixed bottom-0 inset-x-0 z-50 px-6 pb-6 pointer-events-none"
+    >
+      <div className="max-w-5xl mx-auto w-full pointer-events-auto">
+        <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] overflow-hidden">
+          {/* Progress Bar Container */}
+          <div className="relative h-1 bg-zinc-100 dark:bg-zinc-800 cursor-pointer group">
+            <motion.div
+              className="absolute inset-y-0 left-0 bg-indigo-600 dark:bg-indigo-500 rounded-full"
+              style={{ width: `${progress}%` }}
+              layoutId="progress"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+            <input
+              type="range"
+              min={0}
+              max={duration || 0}
+              step={0.1}
+              value={displayTime}
+              onInput={handleSeekInput}
+              onChange={handleSeekChange}
+              onMouseDown={() => setIsDragging(true)}
+              onMouseUp={handleSeekChange}
+              className="absolute -top-4 left-0 w-full h-10 opacity-0 cursor-pointer z-10"
+              aria-label="Seek"
+            />
+          </div>
 
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center gap-4">
-        {/* Track info */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
-            {current.title}
-          </p>
+          <div className="px-10 h-20 flex items-center justify-between gap-8">
+            {/* Info */}
+            <div className="flex-1 min-w-0 flex items-center gap-4">
+               <div className="h-12 w-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+                  <Play size={20} weight="fill" color="white" className={cn(isPlaying && "animate-pulse")} />
+               </div>
+               <div className="min-w-0">
+                  <p className="text-sm font-bold text-zinc-900 dark:text-white truncate tracking-tight">{current.title}</p>
+                  <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest mt-0.5">Original Composition</p>
+               </div>
+            </div>
+
+            {/* Main Controls */}
+            <div className="flex items-center gap-6">
+              <button className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+                 <SkipBack size={24} weight="fill" />
+              </button>
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={isPlaying ? pause : resume}
+                className="h-14 w-14 flex items-center justify-center rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-xl"
+              >
+                {isPlaying ? (
+                  <Pause size={24} weight="fill" />
+                ) : (
+                  <Play size={24} weight="fill" className="ml-1" />
+                )}
+              </motion.button>
+
+              <button className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+                 <SkipForward size={24} weight="fill" />
+              </button>
+            </div>
+
+            {/* Right side: Time & Volume */}
+            <div className="flex-1 flex items-center justify-end gap-6">
+               <div className="flex items-center gap-2 font-mono text-[11px] font-bold text-zinc-400 tabular-nums">
+                  <span>{formatTime(displayTime)}</span>
+                  <span className="opacity-30">/</span>
+                  <span>{formatTime(duration)}</span>
+               </div>
+
+               <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
+
+               <button 
+                onClick={() => setIsMuted(!isMuted)}
+                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+               >
+                  {isMuted ? <SpeakerX size={20} weight="bold" /> : <SpeakerHigh size={20} weight="bold" />}
+               </button>
+            </div>
+          </div>
         </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs tabular-nums text-zinc-400">
-            {formatTime(currentTime)}
-          </span>
-
-          <button
-            onClick={isPlaying ? pause : resume}
-            aria-label={isPlaying ? "Pause" : "Play"}
-            className="h-9 w-9 flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-          >
-            {isPlaying ? (
-              /* Pause */
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="4" width="4" height="16"/>
-                <rect x="14" y="4" width="4" height="16"/>
-              </svg>
-            ) : (
-              /* Play */
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5,3 19,12 5,21"/>
-              </svg>
-            )}
-          </button>
-
-          <span className="text-xs tabular-nums text-zinc-400">
-            {formatTime(duration)}
-          </span>
-        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

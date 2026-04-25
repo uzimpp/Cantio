@@ -49,17 +49,19 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     audioRef.current = audio;
 
     const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onDurationChange = () => setDuration(audio.duration || 0);
+    const onLoadedMetadata = () => setDuration(audio.duration || 0);
     const onEnded = () => setIsPlaying(false);
 
     audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("durationchange", onDurationChange);
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("durationchange", onLoadedMetadata);
     audio.addEventListener("ended", onEnded);
 
     return () => {
       audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("durationchange", onDurationChange);
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("durationchange", onLoadedMetadata);
       audio.removeEventListener("ended", onEnded);
     };
   }, []);
@@ -68,9 +70,10 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (!audio) return;
     audio.src = track.audio_url;
-    audio.play().catch(console.error);
     setCurrent(track);
-    setIsPlaying(true);
+    setDuration(0);
+    setCurrentTime(0);
+    audio.play().then(() => setIsPlaying(true)).catch(console.error);
   };
 
   const pause = () => {

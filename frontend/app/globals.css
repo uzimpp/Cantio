@@ -1,25 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Cinematic Dark Design Tokens */
+  --bg-app: #09090b;
+  --bg-surface: #121214;
+  --bg-element: #1c1c1f;
+  
+  --text-main: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-inverse: #09090b;
+  
+  --border-base: #27272a;
+  --border-active: #3f3f46;
+  
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg-app);
+  --color-foreground: var(--text-main);
+  --color-surface: var(--bg-surface);
+  --color-element: var(--bg-element);
+  --color-border: var(--border-base);
+  --color-muted: var(--text-muted);
+  --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-foreground: var(--text-inverse);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark mode controlled by ThemeContext via .dark class on <html> (FR-06, FR-07) */
-.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-app);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+*, *::before, *::after {
+  border-color: var(--border-base);
+}
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+}
+
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+
+@layer utilities {
+  .wave-bar {
+    animation: wave-bar 1.8s ease-in-out infinite;
+    transform-origin: bottom;
+  }
 }
