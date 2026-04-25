@@ -15,28 +15,37 @@ masterpieces.
 ## Setup & Run
 
 ### 1. Environment Setup
+
 Copy the example environment file:
+
 - **Mac/Linux:** `cp backend/.env.example backend/.env`
 - **Windows:** `copy backend\.env.example backend\.env`
 
 ### 2. Google OAuth Configuration
-1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+
+1. Go to
+   [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
 2. Create **OAuth 2.0 Client ID** (Web Application).
 3. **Authorized JavaScript origins:** `http://localhost:3000`
-4. **Authorized redirect URIs:** `http://localhost:8000/api/auth/google/callback/`
+4. **Authorized redirect URIs:**
+   `http://localhost:8000/api/auth/google/callback/`
 5. Copy `Client ID` and `Client Secret` to `backend/.env`.
 
 ### 3. Suno AI Setup
+
 1. Get an API key from [SunoAPI.org](https://sunoapi.org).
 2. In `backend/.env`, set:
    - `GENERATOR_STRATEGY=suno` (use `mock` for offline dev)
    - `SUNO_API_KEY=your_key_here`
 
 ### 4. Launch (Docker)
+
 **Prerequisites:** Docker Desktop
+
 ```bash
 docker-compose up -d --build
 ```
+
 - **Frontend:** `http://localhost:3000`
 - **Backend API:** `http://localhost:8000`
 - **API Docs:** `http://localhost:8000/api/docs/`
@@ -46,13 +55,16 @@ docker-compose up -d --build
 ## Local Development (No Docker)
 
 ### Backend (Django)
+
 1. `cd backend`
 2. `python -m venv .venv` && `source .venv/bin/activate`
 3. `pip install -r requirements.txt`
-4. Configure `.env` (Set `POSTGRES_HOST=localhost`), then `python manage.py migrate`
+4. Configure `.env` (Set `POSTGRES_HOST=localhost`), then
+   `python manage.py migrate`
 5. `python manage.py runserver`
 
 ### Frontend (Next.js)
+
 1. `cd frontend`
 2. `npm install`
 3. `npm run dev`
@@ -62,25 +74,32 @@ docker-compose up -d --build
 ## Key Features & Architecture
 
 ### Robust Generation Lifecycle
-- **Idempotency**: Implements a "Create Job Early" strategy with database transactions to prevent duplicate song creation.
-- **Async Polling**: The frontend uses a resilient polling mechanism with clean state cleanup on navigation.
+
+- **Idempotency**: Implements a "Create Job Early" strategy with database
+  transactions to prevent duplicate song creation.
+- **Async Polling**: The frontend uses a resilient polling mechanism with clean
+  state cleanup on navigation.
 
 ### Strategy Pattern (AI Providers)
-The system abstracts the music provider via a Strategy Pattern. Toggle providers in `.env`:
+
+The system abstracts the music provider via a Strategy Pattern. Toggle providers
+in `.env`:
+
 - `GENERATOR_STRATEGY=mock`: Instant offline generation (no API key needed).
-- `GENERATOR_STRATEGY=suno`: Live AI generation via [SunoAPI.org](https://sunoapi.org).
+- `GENERATOR_STRATEGY=suno`: Live AI generation via
+  [SunoAPI.org](https://sunoapi.org).
 
 ### Architecture Diagram
+
 ```mermaid
 ---
 config:
   layout: elk
   theme: redux
   look: classic
-  fontFamily: 'Source Code Pro Variable', monospace
 ---
 classDiagram
-    namespace `Page - Component` {
+    namespace Page_Component {
         class LoginPage {
            <<Page>>
            +signInWithGoogle()
@@ -120,7 +139,7 @@ classDiagram
             +refreshToken()
         }
     }
-    namespace `View Controller` {
+    namespace View_Controller {
         class CreatorView {
             <<Controller>>
             +get(request, creator_id) Response
@@ -273,19 +292,23 @@ classDiagram
 ```
 
 ### Sequence Diagram
+
 Check out at [docs](/docs/sequence_diagrams.md)
 
 ### Testing
-Run backend tests to verify the generation logic and API integrity. 
 
-*Note: Run these commands from the project root.*
+Run backend tests to verify the generation logic and API integrity.
+
+_Note: Run these commands from the project root._
 
 **Using Docker (Recommended):**
+
 ```bash
 docker-compose exec backend python manage.py test music.tests
 ```
 
 **Local (Requires Venv):**
+
 ```bash
 cd backend
 python manage.py test music.tests

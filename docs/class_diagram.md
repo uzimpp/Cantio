@@ -4,17 +4,8 @@ This diagram follows a **Layered Architecture** and **GRASP** patterns,
 visualized in a high-fidelity structure similar to enterprise blueprints.
 
 ```mermaid
----
-config:
-  layout: elk
-  theme: redux
-  look: classic
-  fontFamily: '''Source Code Pro Variable'', monospace'
-  themeVariables:
-    fontFamily: '''Source Code Pro Variable'', monospace'
----
 classDiagram
-    namespace `Page - Component` {
+    namespace Page_Component {
         class LoginPage {
            <<Page>>
            +signInWithGoogle()
@@ -54,7 +45,7 @@ classDiagram
             +refreshToken()
         }
     }
-    namespace `View Controller` {
+    namespace View_Controller {
         class CreatorView {
             <<Controller>>
             +get(request, creator_id) Response
@@ -203,7 +194,8 @@ classDiagram
     Library "1" -- "*" Song : "contains"
     Song "1" -- "1" GenerationJob : "birthed by"
     GenerationJob ..> JobStatus : "status restricted to"
-    GenerationJob ..> VoiceType : "vocal restricted to"```
+    GenerationJob ..> VoiceType : "vocal restricted to"
+```
 
 ## Architectural Flow Description
 
