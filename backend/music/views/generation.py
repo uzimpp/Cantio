@@ -6,7 +6,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from ..models import GenerationJob, MusicCreator
-from ..services import SongService
+from ..services import GenerationService
 from .serializers import MusicSerializer
 
 
@@ -41,7 +41,7 @@ class GenerationView(View):
         if not title or not prompt:
             return JsonResponse({"error": "title and prompt are required"}, status=400)
 
-        song, job, error = SongService.initiate_generation(
+        song, job, error = GenerationService.initiate_generation(
             creator=creator,
             title=title,
             prompt=prompt,
@@ -64,7 +64,7 @@ class GenerationView(View):
             return JsonResponse({"error": "generation job not found"}, status=404)
 
         try:
-            job = SongService.sync_status(job)
+            job = GenerationService.sync_status(job)
         except Exception as exc:
             return JsonResponse({"error": str(exc)}, status=502)
 

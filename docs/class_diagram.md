@@ -1,57 +1,88 @@
 # Comprehensive Architectural Class Diagram — Cantio
 
-This diagram follows a **Layered Architecture** and **GRASP** patterns, visualized in a high-fidelity structure similar to enterprise blueprints.
+This diagram follows a **Layered Architecture** and **GRASP** patterns,
+visualized in a high-fidelity structure similar to enterprise blueprints.
 
 ```mermaid
+---
+config:
+  layout: elk
+  theme: redux
+  look: classic
+  fontFamily: '''Source Code Pro Variable'', monospace'
+  themeVariables:
+    fontFamily: '''Source Code Pro Variable'', monospace'
+---
 classDiagram
-    %% ─────────────────────────────────────────
-    %% FRONTEND
-    %% ─────────────────────────────────────────
-    namespace Frontend {
-        class AuthContext {
-            +creator: Creator | null
-            +loading: Boolean
-            +signInWithGoogle() void
-            +signOut() Promise
+    namespace `Page - Component` {
+        class LoginPage {
+           <<Page>>
+           +signInWithGoogle()
         }
-        class AudioPlayerContext {
-            +current: Track | null
-            +isPlaying: Boolean
-            +duration: Number
-            +currentTime: Number
-            +play(Track) void
-            +pause() void
-            +resume() void
-            +seek(Number) void
+        class DashboardPage {
+             <<Page>>
+             +fetchSongs()
+             +filterSongs(filters)
+        }
+        class LibraryPage {
+             <<Page>>
+             +fetchAllSongs()
+             +searchSongs(query)
+             +sortSongs(sortBy)
         }
         class GeneratePage {
-            +title: String
-            +prompt: String
-            +jobStatus: JobStatus
-            +handleSubmit(Event) Promise
-            +startPolling(songId) void
+            <<Page>>
+            +handleSubmit()
+            +startPolling()
+            +cancelGeneration()
+        }
+        class FavouritesPage {
+             <<Page>>
+             +fetchFavourites()
+        }
+        class SharePage {
+             <<Page>>
+             +loadPublicTrack()
+        }
+
+        class AuthContext {
+            <<Context>>
+            +currentUser: MusicCreator
+            +isAuthenticated: Boolean
+            +login()
+            +logout()
+            +refreshToken()
         }
     }
-
-    %% ─────────────────────────────────────────
-    %% BACKEND (Controllers & Adapters)
-    %% ─────────────────────────────────────────
-    namespace Backend {
+    namespace `View Controller` {
+        class CreatorView {
+            <<Controller>>
+            +get(request, creator_id) Response
+            +post(request) Response
+            +put(request, creator_id) Response
+            +delete(request, creator_id) Response
+        }
         class AuthView {
-            +get(action) Response
-            +post(action) Response
-            -_google_login() Response
-            -_google_callback() Response
+            +get(request, action) Response
+            +post(request, action) Response
+            -_google_login(request) Response
+            -_google_callback(request) Response
+            -_me(request) Response
+            -_signout(request) Response
         }
         class GenerationView {
-            +post() Response (Initiate)
-            +get(song_id) Response (Poll)
+            +post(request) Response
+            +get(request, song_id) Response
         }
         class SongView {
-            +get(song_id) Response
-            +post(song_id) Response
-            +delete(song_id) Response
+            +get(request, song_id) Response
+            +post(request, song_id) Response
+            +delete(request, song_id) Response
             -_download(song_id) Response
+        }
+        class LibraryView {
+            +get(request, creator_id) Response
+            +_filter_favourites(songs) Song[]
         }
         class MusicSerializer {
             <<Adapter>>
@@ -60,48 +91,39 @@ classDiagram
             +job_to_json(GenerationJob) dict
             +song_to_json(Song) dict
         }
-    }
 
-    %% ─────────────────────────────────────────
-    %% SUNO INTEGRATION (Strategy Pattern)
-    %% ─────────────────────────────────────────
+    }
     namespace SunoIntegration {
         class SongGeneratorStrategy {
             <<interface>>
-            +generate(title, prompt, genre, mood, vt, occ) GenerationResult
-            +poll(taskId) GenerationResult
+            +generate(title, prompt, genre, mood, voice_type, occasion) GenerationResult
+            +poll(provider_job_id) GenerationResult
         }
         class SunoSongGeneratorStrategy {
-            -api_key: String
+            -_api_key: String
+            -_headers() dict
+            -_map_status(suno_status) String
             +generate(...) GenerationResult
             +poll(...) GenerationResult
-            -_map_status(suno_status) String
         }
         class MockSongGeneratorStrategy {
             +generate(...) GenerationResult
-            +poll(...) GenerationResult
+            +poll(provider_job_id) GenerationResult
         }
-        class StrategyFactory {
-            +get_generator() SongGeneratorStrategy
+        class get_generator {
+            <<function>>
+            +invoke() SongGeneratorStrategy
         }
     }
-
-    %% ─────────────────────────────────────────
-    %% SERVICES (Business Orchestration)
-    %% ─────────────────────────────────────────
     namespace Services {
         class AuthService {
             +process_google_callback(code) Tuple
         }
-        class SongService {
-            +initiate_generation(creator, title, prompt, ...) Tuple
-            +sync_status(GenerationJob) GenerationJob
+        class GenerationService {
+            +initiate_generation(creator, title, prompt, genre, mood, voice_type, occasion) Tuple
+            +sync_status(job) GenerationJob
         }
     }
-
-    %% ─────────────────────────────────────────
-    %% MODELS
-    %% ─────────────────────────────────────────
     namespace Models {
         class MusicCreator {
             +id: UUID
@@ -155,45 +177,55 @@ classDiagram
             INSTRUMENTAL
         }
     }
-
-    %% ─────────────────────────────────────────
-    %% RELATIONSHIPS & LOGIC FLOW
-    %% ─────────────────────────────────────────
-
-    %% UI Interaction
-    GeneratePage --|> GenerationView : "calls API"
-    AuthContext --|> AuthView : "manages session"
-
-    %% Controller Delegation
-    AuthView --> AuthService : "delegates identity logic"
-    GenerationView --> SongService : "delegates creation logic"
-    SongView ..> MusicSerializer : "adapts models to JSON"
-
-    %% Service Orchestration
-    AuthService ..> MusicCreator : "updates or creates"
-    SongService ..> Song : "creates container"
-    SongService ..> GenerationJob : "manages lifecycle"
-    SongService --> StrategyFactory : "requests provider"
-    StrategyFactory --> SongGeneratorStrategy : "selects"
-    
-    %% Strategy Implementation
+    LoginPage --> AuthView : "GET /api/auth/google/"
+    DashboardPage --> LibraryView : "GET /creators/{id}/songs/"
+    LibraryPage --> LibraryView : "GET /creators/{id}/songs/"
+    FavouritesPage --> LibraryView : "GET /creators/{id}/favourites/"
+    GeneratePage --> GenerationView : "POST /api/songs/generate/"
+    SharePage --> SongView : "GET /api/songs/{id}/"
+    AuthContext --> AuthView : "GET /api/auth/me/ | POST /api/auth/signout/"
+    AuthView --> AuthService : "delegates"
+    GenerationView --> GenerationService : "delegates"
+    SongView ..> MusicSerializer : "adapts"
+    SongView --> Song : "Manage"
+    LibraryView ..> MusicSerializer : "adapts"
+    LibraryView --> Song : "retrieves & filters"
+    AuthService ..> MusicCreator : "upserts"
+    GenerationService ..> Song : "creates/updates"
+    GenerationService ..> Library : "read"
+    GenerationService ..> GenerationJob : "manages lifecycle"
+    GenerationService --> get_generator : "requests"
+    get_generator ..> SongGeneratorStrategy : "selects"
+    CreatorView --> MusicCreator : "Manage"
     SongGeneratorStrategy <|.. SunoSongGeneratorStrategy : implements
     SongGeneratorStrategy <|.. MockSongGeneratorStrategy : implements
-
-    %% Domain Integrity
     MusicCreator "1" -- "1" Library : "owns"
     Library "1" -- "*" Song : "contains"
     Song "1" -- "1" GenerationJob : "birthed by"
     GenerationJob ..> JobStatus : "status restricted to"
-    GenerationJob ..> VoiceType : "vocal restricted to"
-```
+    GenerationJob ..> VoiceType : "vocal restricted to"```
 
 ## Architectural Flow Description
 
-1.  **Identity Orchestration**: The `AuthContext` (Frontend) triggers a redirect to `AuthView` (Backend), which delegates to `AuthService` (Service). The `AuthService` verifies the Google JWT and performs an **Upsert** on the `MusicCreator` model.
-2.  **Creation Pipeline**: When `GeneratePage` submits, `GenerationView` calls `SongService.initiate_generation()`. This service acts as a **GRASP Indirection** layer:
-    *   It creates a `Song` (the Asset) and a `GenerationJob` (the Recipe/Audit Log).
-    *   It uses the `StrategyFactory` to obtain a `SongGeneratorStrategy`.
-    *   It executes the strategy and stores the external `provider_job_id`.
-3.  **Completion Logic**: On successful generation (either immediate for Mock or via polling for Suno), the `SongService` moves the final `audio_url` and `duration` from the AI response to the `Song` entity for **Permanent Storage**.
-4.  **Information Expert**: The `Song` model manages its own interaction states (`favourite`, `share`, `revoke`). These methods encapsulate state transitions directly within the domain entity.
+1.  **Identity Orchestration**: The `AuthContext` (Frontend) triggers a redirect
+    to `AuthView` (Backend), which delegates to `AuthService` (Service). The
+    `AuthService` verifies the Google JWT and performs an **Upsert** on the
+    `MusicCreator` model.
+2.  **Creation Pipeline**: When `GeneratePage` submits, `GenerationView` calls
+    `GenerationService.initiate_generation()`. This service acts as a **GRASP
+    Indirection** layer with **Atomic Idempotency**:
+    - It performs a 10-second idempotency check within a database transaction.
+    - It uses a **"Create Job Early"** strategy, registering the `GenerationJob`
+      before the AI call to prevent race conditions.
+    - It creates a `Song` (the Asset) and a `GenerationJob` (the Recipe/Audit
+      Log).
+    - It uses `get_generator()` to obtain a `SongGeneratorStrategy`.
+    - It executes the strategy and stores the external `provider_job_id`.
+3.  **Completion Logic**: On successful generation (either immediate for Mock or
+    via polling for Suno), the `SongService` moves the final `audio_url` and
+    `duration` from the AI response to the `Song` entity for **Permanent
+    Storage**. The frontend automatically clears the generation state to prevent
+    accidental resubmissions.
+4.  **Information Expert**: The `Song` model manages its own interaction states
+    (`favourite`, `share`, `revoke`). These methods encapsulate state
+    transitions directly within the domain entity.

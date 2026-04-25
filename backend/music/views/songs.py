@@ -58,6 +58,7 @@ class SongView(View):
             return JsonResponse({"song": MusicSerializer.song_to_json(s)})
 
         return JsonResponse({"error": "invalid action"}, status=400)
+
     def _download(self, song_id):
         try:
             s = Song.objects.get(pk=song_id)

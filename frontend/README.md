@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cantio Frontend
+
+A premium, interactive music generation interface built with Next.js 15. The UI is designed to be high-density yet airy, focusing on a tactile "Composer Studio" experience.
+
+## Design Philosophy
+- **Tactile Feedback**: Every button and card uses Framer Motion for spring-based physical reactions (`whileTap`, `whileHover`).
+- **Visual Feedback**: Real-time generation status tracking with animated sequence indicators.
+- **Resilience**: Synchronous submission locks and automatic form clearing to prevent duplicate generation requests.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 20+
+- Backend API running at `http://localhost:8000`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Setup & Run
+1. **Navigate**: `cd frontend`
+2. **Install**: `npm install`
+3. **Environment**:
+   The app defaults to `http://localhost:8000` for the API. To override, create a `.env.local` file:
+   ```bash
+   NEXT_PUBLIC_API_URL=http://your-api-url
+   ```
+4. **Run**:
+   ```bash
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## UI & Template Layer (`app/`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The frontend follows an **MVT-like pattern** where Next.js Pages act as the Templates that orchestrate interactions between the user and the Backend REST API.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Core Pages
+- **Login (`/login`)**: The entry point. Handles Google OAuth initiation and user redirection.
+- **Dashboard (`/dashboard`)**: The primary library template. Fetches and displays the user's collection of generated tracks.
+- **Generate (`/generate`)**: The "Composer Studio" interface. Manages complex form state and real-time generation lifecycles.
+- **Favourites (`/favourites`)**: A filtered template displaying only starred compositions.
+- **Share (`/share/[id]`)**: A public-facing template for track previews.
 
-## Learn More
+### Smart Components
+- **`SongCard`**: Handles resource-specific actions like favouriting, deleting, and toggling public visibility.
+- **`AudioPlayerBar`**: A persistent global component that streams audio from the backend-provided CDN URLs.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Infrastructure & State
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Commands
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Task | Command |
+|---|---|
+| Development | `npm run dev` |
+| Production Build | `npm run build` |
+| Linting | `npm run lint` |
+| Type Check | `npx tsc` |
