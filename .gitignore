@@ -42,3 +42,4 @@ yarn.lock
 package-lock.json
 .claude/
 .cursor/
+.worktrees/
