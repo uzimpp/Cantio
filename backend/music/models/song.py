@@ -7,11 +7,7 @@ class Song(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     library = models.ForeignKey(Library, on_delete=models.CASCADE, related_name="songs")
     title = models.CharField(max_length=256)
-    prompt_description = models.TextField()
-    genre = models.CharField(max_length=100, blank=True)
-    mood = models.CharField(max_length=100, blank=True)
-    voice_type = models.CharField(max_length=100, blank=True)
-    occasion = models.CharField(max_length=100, blank=True)
+    audio_url = models.URLField(blank=True, null=True)
     duration = models.FloatField(null=True, blank=True)  # duration in seconds
     is_favourited = models.BooleanField(default=False)
     is_private = models.BooleanField(default=True)

@@ -164,11 +164,11 @@ paths:
               type: object
               required:
                 - title
-                - prompt_description
+                - prompt
               properties:
                 title:
                   type: string
-                prompt_description:
+                prompt:
                   type: string
                 genre:
                   type: string
@@ -329,7 +329,40 @@ components:
           format: uuid
         title:
           type: string
-        prompt_description:
+        audio_url:
+          type: string
+          format: uri
+          nullable: true
+        duration:
+          type: number
+          nullable: true
+        is_favourited:
+          type: boolean
+        is_private:
+          type: boolean
+        shareable_url:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        generation_job:
+          $ref: '#/components/schemas/GenerationJob'
+
+    GenerationJob:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        song_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, complete, failed]
+        prompt:
           type: string
         genre:
           type: string
@@ -337,17 +370,12 @@ components:
           type: string
         voice_type:
           type: string
+          enum: [male, female, instrumental]
         occasion:
           type: string
-        duration:
-          type: integer
-        is_favourited:
-          type: boolean
-        is_private:
-          type: boolean
-        shareable_url:
+        error:
           type: string
           nullable: true
-        created_at:
+        updated_at:
           type: string
           format: date-time

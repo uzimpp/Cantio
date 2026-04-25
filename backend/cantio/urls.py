@@ -20,6 +20,7 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/', include('music.auth_urls')),
     path('api/', include('music.urls')),
     path('api/docs/', views.api_docs, name='api_docs'),
 ]

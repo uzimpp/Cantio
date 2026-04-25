@@ -34,10 +34,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'music',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',   # must be first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -45,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'music.middleware.RequireAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'cantio.urls'
@@ -121,3 +124,29 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(BASE_DIR, 'staticfiles'))
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'cantio', 'static')]
+
+
+# ── Sessions (FR-04: 14-day HTTPOnly cookie) ──────────────────────────────────
+SESSION_ENGINE          = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME     = 'cantio_session'
+SESSION_COOKIE_AGE      = int(os.environ.get('SESSION_COOKIE_AGE', 1209600))  # 14 days
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE   = not DEBUG   # False in dev, True in production
+
+
+# ── Google OAuth ──────────────────────────────────────────────────────────────
+SUNO_CALLBACK_URL = os.environ.get('SUNO_CALLBACK_URL', 'http://localhost:8000/api/songs/callback/')
+SUNO_MODEL        = os.environ.get('SUNO_MODEL', 'V5_5')
+
+GOOGLE_CLIENT_ID     = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+GOOGLE_REDIRECT_URI  = os.environ.get(
+    'GOOGLE_REDIRECT_URI', 'http://localhost:8000/api/auth/google/callback/'
+)
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+
+# ── CORS (allow Next.js dev server to send cookies) ──────────────────────────
+CORS_ALLOWED_ORIGINS   = [FRONTEND_URL]
+CORS_ALLOW_CREDENTIALS = True

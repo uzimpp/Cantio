@@ -1,32 +1,27 @@
 from django.urls import path
-from . import views
+from .views.songs import SongView
+from .views.library import LibraryView
+from .views.generation import GenerationView
+from .views.creators import CreatorView
 
 urlpatterns = [
+    # Song generation
+    path("songs/generate/", GenerationView.as_view(), name="song_generate"),
     path(
-        "creators/", views.CreatorListCreateView.as_view(), name="creator_list_create"
+        "songs/<uuid:song_id>/generation-status/",
+        GenerationView.as_view(),
+        name="generation_status",
     ),
-    path(
-        "creators/<uuid:creator_id>/",
-        views.CreatorDetailView.as_view(),
-        name="creator_detail",
-    ),
-    path(
-        "creators/<uuid:creator_id>/songs/",
-        views.SongListCreateView.as_view(),
-        name="creator_songs",
-    ),
-    path(
-        "creators/<uuid:creator_id>/favourites/",
-        views.FavouritesView.as_view(),
-        name="creator_favourites",
-    ),
-    path("songs/<uuid:song_id>/", views.SongDetailView.as_view(), name="song_detail"),
-    path(
-        "songs/<uuid:song_id>/favourite/",
-        views.ToggleFavouriteView.as_view(),
-        name="toggle_favourite",
-    ),
-    path(
-        "songs/<uuid:song_id>/share/", views.SongShareView.as_view(), name="song_share"
-    ),
+    
+    # Song instance operations
+    path("songs/<uuid:song_id>/", SongView.as_view(), name="song_detail"),
+    path("songs/<uuid:song_id>/download/", SongView.as_view(), name="song_download"),
+    path("songs/<uuid:song_id>/favourite/", SongView.as_view(), name="toggle_favourite"),
+    path("songs/<uuid:song_id>/share/", SongView.as_view(), name="song_share"),
+
+    # Creator & Library operations
+    path("creators/", CreatorView.as_view(), name="creator_list_create"),
+    path("creators/<uuid:creator_id>/", CreatorView.as_view(), name="creator_detail"),
+    path("creators/<uuid:creator_id>/songs/", LibraryView.as_view(), name="creator_songs"),
+    path("creators/<uuid:creator_id>/favourites/", LibraryView.as_view(), name="creator_favourites"),
 ]
