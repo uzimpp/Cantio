@@ -1,10 +1,14 @@
-from typing import Tuple, Optional
+from datetime import timedelta
+from typing import Optional, Tuple
+
 import requests as http_requests
 from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 
-from .models import Song, Library, MusicCreator, GenerationJob
+from .models import GenerationJob, Library, MusicCreator, Song
 from .strategies.factory import get_generator
 
 
@@ -15,7 +19,9 @@ class AuthService:
     """
 
     @staticmethod
-    def process_google_callback(code: str) -> Tuple[Optional[MusicCreator], Optional[str]]:
+    def process_google_callback(
+        code: str,
+    ) -> Tuple[Optional[MusicCreator], Optional[str]]:
         GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
         token_resp = http_requests.post(
@@ -67,20 +73,55 @@ class SongService:
         genre: str = "",
         mood: str = "",
         voice_type: str = GenerationJob.VoiceType.INSTRUMENTAL,
-        occasion: str = ""
+        occasion: str = "",
     ) -> Tuple[Optional[Song], Optional[GenerationJob], Optional[str]]:
         """
         Orchestrates the creation of a Song and its initial GenerationJob.
+        Uses a 'Create Job Early' strategy within a transaction to prevent duplicates.
         """
         library = Library.objects.get(creator=creator)
-        
-        # 1. Create the Song (the final asset container)
-        song = Song.objects.create(
-            library=library,
-            title=title,
-        )
 
-        # 2. Get the strategy and generate
+        # 1. Idempotency Check & Atomic Creation
+        # We wrap this in a transaction to ensure Request B sees the job created by Request A.
+        with transaction.atomic():
+            recent_cutoff = timezone.now() - timedelta(seconds=10)
+            existing_job = (
+                GenerationJob.objects.filter(
+                    song__library=library,
+                    song__title=title,
+                    prompt=prompt,
+                    genre=genre,
+                    mood=mood,
+                    voice_type=voice_type,
+                    occasion=occasion,
+                    created_at__gte=recent_cutoff,
+                )
+                .select_related("song")
+                .first()
+            )
+
+            if existing_job:
+                return existing_job.song, existing_job, None
+
+            # Create the Song (the final asset container)
+            song = Song.objects.create(
+                library=library,
+                title=title,
+            )
+
+            # Create the GenerationJob EARLY (the audit trail/recipe)
+            # This 'claims' the request so concurrent calls find it.
+            job = GenerationJob.objects.create(
+                song=song,
+                prompt=prompt,
+                genre=genre,
+                mood=mood,
+                voice_type=voice_type,
+                occasion=occasion,
+                status=GenerationJob.Status.PENDING,
+            )
+
+        # 2. Get the strategy and generate (Outside transaction to avoid long-held locks)
         generator = get_generator()
         try:
             result = generator.generate(
@@ -92,25 +133,22 @@ class SongService:
                 occasion=occasion,
             )
         except Exception as exc:
-            song.delete()
-            return None, None, f"generation failed: {exc}"
+            job.status = GenerationJob.Status.FAILED
+            job.error_message = f"Generation failed: {exc}"
+            job.save(update_fields=["status", "error_message"])
+            return song, job, f"generation failed: {exc}"
 
         if result["status"] == "failed":
-            song.delete()
-            return None, None, result.get("error") or "generation failed"
+            job.status = GenerationJob.Status.FAILED
+            job.error_message = result.get("error") or "generation failed"
+            job.save(update_fields=["status", "error_message"])
+            return song, job, job.error_message
 
-        # 3. Create the GenerationJob (the audit trail/recipe)
-        job = GenerationJob.objects.create(
-            song=song,
-            prompt=prompt,
-            genre=genre,
-            mood=mood,
-            voice_type=voice_type,
-            occasion=occasion,
-            provider_job_id=result["provider_job_id"],
-            status=result["status"],
-            error_message=result.get("error") or "",
-        )
+        # 3. Update the Job with provider info
+        job.provider_job_id = result["provider_job_id"]
+        job.status = result["status"]
+        job.error_message = result.get("error") or ""
+        job.save(update_fields=["provider_job_id", "status", "error_message"])
 
         # Handle immediate completion (e.g., Mock strategy)
         if job.status == GenerationJob.Status.COMPLETE and result.get("audio_url"):
@@ -126,11 +164,14 @@ class SongService:
         Polls the strategy and updates the job/song state.
         Once complete, moves final audio data to the Song.
         """
-        if job.status in (GenerationJob.Status.PENDING, GenerationJob.Status.PROCESSING):
+        if job.status in (
+            GenerationJob.Status.PENDING,
+            GenerationJob.Status.PROCESSING,
+        ):
             generator = get_generator()
             result = generator.poll(job.provider_job_id)
 
-            job.status        = result["status"]
+            job.status = result["status"]
             job.error_message = result.get("error") or ""
             job.save()
 
@@ -138,5 +179,5 @@ class SongService:
                 job.song.audio_url = result.get("audio_url")
                 job.song.duration = result.get("duration")
                 job.song.save(update_fields=["audio_url", "duration"])
-        
+
         return job

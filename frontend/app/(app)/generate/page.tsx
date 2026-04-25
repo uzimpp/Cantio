@@ -71,6 +71,7 @@ export default function GeneratePage() {
   const [completedSong, setCompletedSong] = useState<Song | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isSubmitting = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -106,8 +107,10 @@ export default function GeneratePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting.current) return;
     if (!title.trim() || !prompt.trim()) return;
 
+    isSubmitting.current = true;
     setJobStatus("pending");
     setErrorMsg(null);
     setCompletedSong(null);
@@ -131,6 +134,14 @@ export default function GeneratePage() {
       const jobStatusFromServer = song.generation_job?.status ?? "pending";
       setJobStatus(jobStatusFromServer as JobStatus);
 
+      // Clear the form fields after successful initiation
+      setTitle("");
+      setPrompt("");
+      setGenre("");
+      setMood("");
+      setVoiceType("instrumental");
+      setOccasion("");
+
       if (jobStatusFromServer === "complete") {
         setCompletedSong(song);
       } else if (jobStatusFromServer === "failed") {
@@ -141,6 +152,8 @@ export default function GeneratePage() {
     } catch (err: unknown) {
       setJobStatus("failed");
       setErrorMsg(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      isSubmitting.current = false;
     }
   };
 
@@ -307,6 +320,7 @@ export default function GeneratePage() {
                 <div className="flex gap-2">
                   {completedSong.audio_url && (
                     <Button
+                      type="button"
                       size="sm"
                       onClick={() =>
                         play({
@@ -321,6 +335,7 @@ export default function GeneratePage() {
                     </Button>
                   )}
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => router.push("/dashboard")}
