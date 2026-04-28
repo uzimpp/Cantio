@@ -1,5 +1,5 @@
 from django.urls import path
-from .views.songs import SongView
+from .views.songs import SongView, SharedSongView
 from .views.library import LibraryView
 from .views.generation import GenerationView
 from .views.creators import CreatorView
@@ -18,6 +18,9 @@ urlpatterns = [
     path("songs/<uuid:song_id>/download/", SongView.as_view(), name="song_download"),
     path("songs/<uuid:song_id>/favourite/", SongView.as_view(), name="toggle_favourite"),
     path("songs/<uuid:song_id>/share/", SongView.as_view(), name="song_share"),
+
+    # Public shared song (no auth required)
+    path("shared/<uuid:shareable_url>/", SharedSongView.as_view(), name="shared_song"),
 
     # Creator & Library operations
     path("creators/", CreatorView.as_view(), name="creator_list_create"),

@@ -14,11 +14,10 @@ function formatTime(seconds: number): string {
 }
 
 export function AudioPlayerBar() {
-  const { current, isPlaying, duration, currentTime, pause, resume, seek } =
+  const { current, isPlaying, duration, currentTime, volume, isMuted, pause, resume, seek, setVolume, toggleMute } =
     useAudioPlayer();
   const [isDragging, setIsDragging] = useState(false);
   const [localTime, setLocalTime] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
 
   if (!current) return null;
 
@@ -113,12 +112,24 @@ export function AudioPlayerBar() {
 
                <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
 
-               <button 
-                onClick={() => setIsMuted(!isMuted)}
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-               >
-                  {isMuted ? <SpeakerX size={20} weight="bold" /> : <SpeakerHigh size={20} weight="bold" />}
-               </button>
+               <div className="flex items-center gap-2">
+                  <button
+                    onClick={toggleMute}
+                    className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                  >
+                    {isMuted || volume === 0 ? <SpeakerX size={20} weight="bold" /> : <SpeakerHigh size={20} weight="bold" />}
+                  </button>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className="w-20 accent-indigo-600 cursor-pointer"
+                    aria-label="Volume"
+                  />
+               </div>
             </div>
           </div>
         </div>

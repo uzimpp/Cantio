@@ -10,6 +10,11 @@ EXEMPT_PATHS = {
     "/admin/",
 }
 
+EXEMPT_PREFIXES = (
+    "/api/shared/",
+    "/health/",
+)
+
 
 class RequireAuthMiddleware:
     """
@@ -27,7 +32,7 @@ class RequireAuthMiddleware:
         path = request.path
 
         # Only guard /api/ paths that are not explicitly exempt
-        if path.startswith("/api/") and path not in EXEMPT_PATHS:
+        if path.startswith("/api/") and path not in EXEMPT_PATHS and not path.startswith(EXEMPT_PREFIXES):
             if not request.session.get("creator_id"):
                 return JsonResponse({"error": "unauthenticated"}, status=401)
 

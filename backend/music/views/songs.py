@@ -67,3 +67,24 @@ class SongView(View):
             return redirect(s.audio_url)
         except Song.DoesNotExist:
             return JsonResponse({"error": "song not found"}, status=404)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class SharedSongView(View):
+    """
+    GET /api/shared/<shareable_url>/ -> Public endpoint, no auth required.
+    Returns the song only if it is not private.
+    """
+
+    def get(self, request, shareable_url):
+        try:
+            s = Song.objects.select_related("library__creator").get(
+                shareable_url=shareable_url, is_private=False
+            )
+        except Song.DoesNotExist:
+            return JsonResponse({"error": "song not found"}, status=404)
+        creator = s.library.creator
+        return JsonResponse({
+            "song": MusicSerializer.song_to_json(s),
+            "creator": MusicSerializer.creator_to_json(creator),
+        })

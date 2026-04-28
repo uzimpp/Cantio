@@ -20,10 +20,14 @@ type AudioPlayerContextValue = {
   isPlaying: boolean;
   duration: number;
   currentTime: number;
+  volume: number;
+  isMuted: boolean;
   play: (track: Track) => void;
   pause: () => void;
   resume: () => void;
   seek: (time: number) => void;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
 };
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue>({
@@ -31,10 +35,14 @@ const AudioPlayerContext = createContext<AudioPlayerContextValue>({
   isPlaying: false,
   duration: 0,
   currentTime: 0,
+  volume: 1,
+  isMuted: false,
   play: () => {},
   pause: () => {},
   resume: () => {},
   seek: () => {},
+  setVolume: () => {},
+  toggleMute: () => {},
 });
 
 export function AudioPlayerProvider({ children }: { children: ReactNode }) {
@@ -43,6 +51,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolumeState] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     const audio = new Audio();
@@ -90,9 +100,26 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     if (audioRef.current) audioRef.current.currentTime = time;
   };
 
+  const setVolume = (v: number) => {
+    const clamped = Math.max(0, Math.min(1, v));
+    if (audioRef.current) {
+      audioRef.current.volume = clamped;
+      audioRef.current.muted = false;
+    }
+    setVolumeState(clamped);
+    setIsMuted(false);
+  };
+
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    const next = !isMuted;
+    audioRef.current.muted = next;
+    setIsMuted(next);
+  };
+
   return (
     <AudioPlayerContext.Provider
-      value={{ current, isPlaying, duration, currentTime, play, pause, resume, seek }}
+      value={{ current, isPlaying, duration, currentTime, volume, isMuted, play, pause, resume, seek, setVolume, toggleMute }}
     >
       {children}
     </AudioPlayerContext.Provider>

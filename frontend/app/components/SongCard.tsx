@@ -38,6 +38,7 @@ export function SongCard({ song, onFavouriteToggle, onDelete }: Props) {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState<"fav" | "visibility" | "delete" | null>(null);
   const [isPrivate, setIsPrivate] = useState(song.is_private);
+  const [shareableUrl, setShareableUrl] = useState(song.shareable_url);
 
   const audioUrl = song.audio_url;
   const isThisPlaying = isPlaying && current?.song_id === song.id;
@@ -74,6 +75,7 @@ export function SongCard({ song, onFavouriteToggle, onDelete }: Props) {
       const method = isPrivate ? "POST" : "DELETE";
       const data = await apiFetch<{ song: Song }>(`/api/songs/${song.id}/share/`, { method });
       setIsPrivate(data.song.is_private);
+      setShareableUrl(data.song.shareable_url);
     } catch { /* ignore */ } finally {
       setLoading(null);
     }
@@ -81,7 +83,7 @@ export function SongCard({ song, onFavouriteToggle, onDelete }: Props) {
 
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}/share/${song.id}`;
+    const shareUrl = `${window.location.origin}/share/${shareableUrl}`;
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
