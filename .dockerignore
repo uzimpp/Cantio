@@ -33,7 +33,6 @@ coverage/
 npm-debug.log
 yarn-error.log
 yarn.lock
-package-lock.json
 *.py[cod]
 *$py.class
 *.sqlite3

@@ -291,9 +291,9 @@ classDiagram
     GenerationJob ..> VoiceType : "vocal restricted to"
 ```
 
-### Sequence Diagram
+### Diagrams
 
-Check out at [docs](/docs/sequence_diagrams.md)
+check out at `./docs/`
 
 ### Testing
 
