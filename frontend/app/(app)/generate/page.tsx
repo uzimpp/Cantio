@@ -17,6 +17,7 @@ import {
   ArrowRight,
 } from "@phosphor-icons/react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import type { Song, GenerationJob } from "../dashboard/page";
 import { cn } from "@/app/lib/utils";
 
@@ -95,8 +96,22 @@ export default function GeneratePage() {
               `/api/songs/${songId}/`,
             );
             setCompletedSong(updated.song);
+            toast.success(`"${updated.song.title}" is ready!`, {
+              description: "Your composition has been added to your library.",
+              duration: 8000,
+              action: updated.song.audio_url ? {
+                label: "Play Now",
+                onClick: () => play({
+                  song_id: updated.song.id,
+                  title: updated.song.title,
+                  audio_url: updated.song.audio_url!,
+                }),
+              } : undefined,
+            });
           } else {
-            setErrorMsg(job.error ?? "Generation failed.");
+            const errMsg = job.error ?? "Generation failed.";
+            setErrorMsg(errMsg);
+            toast.error("Generation Failed", { description: errMsg, duration: 6000 });
           }
         }
       } catch {
@@ -144,14 +159,30 @@ export default function GeneratePage() {
 
       if (jobStatusFromServer === "complete") {
         setCompletedSong(song);
+        toast.success(`"${song.title}" is ready!`, {
+          description: "Your composition has been added to your library.",
+          duration: 8000,
+          action: song.audio_url ? {
+            label: "Play Now",
+            onClick: () => play({
+              song_id: song.id,
+              title: song.title,
+              audio_url: song.audio_url!,
+            }),
+          } : undefined,
+        });
       } else if (jobStatusFromServer === "failed") {
-        setErrorMsg(song.generation_job?.error ?? "Generation failed.");
+        const errMsg = song.generation_job?.error ?? "Generation failed.";
+        setErrorMsg(errMsg);
+        toast.error("Generation Failed", { description: errMsg, duration: 6000 });
       } else {
         startPolling(song.id);
       }
     } catch (err: unknown) {
       setJobStatus("failed");
-      setErrorMsg(err instanceof Error ? err.message : "Unknown error");
+      const errMsg = err instanceof Error ? err.message : "Unknown error";
+      setErrorMsg(errMsg);
+      toast.error("Generation Failed", { description: errMsg, duration: 6000 });
     } finally {
       isSubmitting.current = false;
     }
@@ -411,6 +442,25 @@ export default function GeneratePage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black text-muted uppercase tracking-widest">
+                Occasion
+              </label>
+              <select
+                value={occasion}
+                onChange={(e) => setOccasion(e.target.value)}
+                disabled={isGenerating}
+                className="w-full bg-element rounded-xl px-4 py-3 text-sm font-bold text-foreground border-none appearance-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Select Occasion</option>
+                {OCCASION_OPTIONS.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
             </div>
           </Card>
 

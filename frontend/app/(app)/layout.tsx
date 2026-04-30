@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { Navbar } from "@/app/components/Navbar";
 import { OnboardingModal } from "@/app/components/OnboardingModal";
+import { Toaster } from "sonner";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { creator, loading } = useAuth();
@@ -33,6 +34,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 p-6 pb-28">{children}</main>
       {/* FR-08, FR-09: onboarding modal for first-time users */}
       <OnboardingModal />
+      <Toaster
+        position="bottom-right"
+        theme="dark"
+        toastOptions={{
+          classNames: {
+            toast: "!bg-zinc-900 !border !border-zinc-800 !rounded-2xl !shadow-2xl",
+            title: "!font-bold !text-sm !text-zinc-100",
+            description: "!text-xs !text-zinc-400",
+            actionButton: "!bg-indigo-600 !text-white !text-xs !font-bold !rounded-lg",
+          },
+        }}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useAudioPlayer } from "@/app/contexts/AudioPlayerContext";
 import { useState } from "react";
-import { Play, Pause, SpeakerHigh, SpeakerX, SkipForward, SkipBack } from "@phosphor-icons/react";
+import { Play, Pause, SpeakerHigh, SpeakerX, SkipForward, SkipBack, Repeat } from "@phosphor-icons/react";
 import { cn } from "@/app/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,7 +14,7 @@ function formatTime(seconds: number): string {
 }
 
 export function AudioPlayerBar() {
-  const { current, isPlaying, duration, currentTime, volume, isMuted, pause, resume, seek, setVolume, toggleMute } =
+  const { current, isPlaying, duration, currentTime, volume, isMuted, isLooping, hasNext, hasPrev, pause, resume, seek, setVolume, toggleMute, toggleLoop, skipNext, skipPrev } =
     useAudioPlayer();
   const [isDragging, setIsDragging] = useState(false);
   const [localTime, setLocalTime] = useState(0);
@@ -80,7 +80,12 @@ export function AudioPlayerBar() {
 
             {/* Main Controls */}
             <div className="flex items-center gap-6">
-              <button className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+              <button
+                onClick={skipPrev}
+                disabled={!hasPrev}
+                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Previous song"
+              >
                  <SkipBack size={24} weight="fill" />
               </button>
               
@@ -97,8 +102,26 @@ export function AudioPlayerBar() {
                 )}
               </motion.button>
 
-              <button className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+              <button
+                onClick={skipNext}
+                disabled={!hasNext}
+                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Next song"
+              >
                  <SkipForward size={24} weight="fill" />
+              </button>
+
+              <button
+                onClick={toggleLoop}
+                className={cn(
+                  "transition-colors",
+                  isLooping
+                    ? "text-indigo-600 dark:text-indigo-400"
+                    : "text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                )}
+                aria-label="Toggle loop"
+              >
+                <Repeat size={20} weight={isLooping ? "fill" : "regular"} />
               </button>
             </div>
 

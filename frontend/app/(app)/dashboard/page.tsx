@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { apiFetch } from "@/app/lib/api";
 import { SongCard } from "@/app/components/SongCard";
+import { useAudioPlayer } from "@/app/contexts/AudioPlayerContext";
 import { Button } from "@/app/components/ui/Button";
 import {
   Plus,
@@ -41,6 +42,7 @@ export type Song = {
 
 export default function DashboardPage() {
   const { creator } = useAuth();
+  const { playWithQueue } = useAudioPlayer();
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -80,6 +82,19 @@ export default function DashboardPage() {
       s.title.toLowerCase().includes(search.toLowerCase()) ||
       s.generation_job?.prompt.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const playableQueue = useMemo(
+    () =>
+      filteredSongs
+        .filter((s) => s.generation_job?.status === "complete" && !!s.audio_url)
+        .map((s) => ({ song_id: s.id, title: s.title, audio_url: s.audio_url! })),
+    [filteredSongs],
+  );
+
+  const handlePlay = (track: { song_id: string; title: string; audio_url: string }) => {
+    const index = playableQueue.findIndex((t) => t.song_id === track.song_id);
+    if (index !== -1) playWithQueue(playableQueue, index);
+  };
 
   if (loading) {
     return (
@@ -178,6 +193,7 @@ export default function DashboardPage() {
                   song={song}
                   onFavouriteToggle={handleFavouriteToggle}
                   onDelete={handleDelete}
+                  onPlay={handlePlay}
                 />
               </motion.div>
             ))}
